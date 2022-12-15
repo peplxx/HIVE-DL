@@ -2,14 +2,18 @@
 
 class Drone:
     def __init__(self, name, sim_object):
-        self.max_velocity = 0.2
-        self.max_acceleration = 0.02
+        self.max_velocity = 0.3
+        self.max_acceleration = 0.025
         self.max_jerking = 80
         self.sim = sim_object
         self.name = name
-        self.object = self.sim.getObject(f'/{self.name}')
+
+        self.object = self.sim.loadModel('hackaton_models/copter.ttm')
+
+        # self.object = self.sim.getObject(f'/{self.name}')
         self.target_object = None
         self.set_target()
+        print(f'Drone #{self.object} initialized!')
 
     def cb(self,pose, vel, accel, handle):
         self.sim.setObjectPose(handle, -1, pose)
