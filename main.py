@@ -3,6 +3,5 @@ from zmqRemoteApi import RemoteAPIClient
 client = RemoteAPIClient()
 
 sim = client.getObject('sim')
-h = sim.getObject('/Floor')
+h = sim.getObjects('/target')
 print(h)
-sim.stopSimulation()
