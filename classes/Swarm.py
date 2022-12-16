@@ -22,13 +22,13 @@ class Swarm:
 
     def merge(self, another_swarm):
         self.drones += another_swarm.drones
-        self.num_of_drones += 1 + len(another_swarm.drones)
+        self.num += 1 + len(another_swarm.drones)
         # упразднить лидера
 
     def separate(self, factor, new_number):
         new_drones = self.drones[:floor(self.num * factor)]
         new_group = Swarm(False, new_number, floor(self.num * factor), self.sim, new_drones)
-        self.num_of_drones -= floor(self.num * factor)
+        self.num -= floor(self.num * factor)
         self.drones = self.drones[floor(self.num * factor):]
         return new_group
 
