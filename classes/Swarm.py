@@ -8,13 +8,13 @@ class Swarm:
     иначе берём из *args первого как лидера, остальных - как ведомых (уже существуют)"""
     def __init__(self, is_new, num_of_group, num_of_drones, sim_object, *args):
         self.ind = num_of_group
-        self.num = num_of_drones
+        self.size = num_of_drones
         self.is_free = True
         self.sim = sim_object
         if is_new:
             self.leader = Leader(f"Leader|{self.ind}", sim_object)
             self.drones = []
-            for i in range(self.num - 1):
+            for i in range(self.size - 1):
                 self.drones.append(Drone(f"Drone|{self.ind}|{i}", sim_object))
         else:
             self.leader = args[0]  # перевести в лидера
@@ -22,14 +22,16 @@ class Swarm:
 
     def merge(self, another_swarm):
         self.drones += another_swarm.drones
-        self.num += 1 + len(another_swarm.drones)
+        self.size += 1 + len(another_swarm.drones)
         # упразднить лидера
-
+    @property
+    def get_size(self):
+        return self.size
     def separate(self, factor, new_number):
-        new_drones = self.drones[:floor(self.num * factor)]
-        new_group = Swarm(False, new_number, floor(self.num * factor), self.sim, new_drones)
-        self.num -= floor(self.num * factor)
-        self.drones = self.drones[floor(self.num * factor):]
+        new_drones = self.drones[:floor(self.size * factor)]
+        new_group = Swarm(False, new_number, floor(self.size * factor), self.sim, new_drones)
+        self.size -= floor(self.size * factor)
+        self.drones = self.drones[floor(self.size * factor):]
         return new_group
 
     def do_task(self):
