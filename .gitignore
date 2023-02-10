@@ -2,3 +2,4 @@
 classes/__pycache__/*.pyc
 *.xml
 *.iml
+.idea
