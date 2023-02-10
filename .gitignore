@@ -3,3 +3,5 @@ classes/__pycache__/*.pyc
 *.xml
 *.iml
 .idea
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
