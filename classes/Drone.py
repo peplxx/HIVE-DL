@@ -25,6 +25,10 @@ class Drone:
     def get_drone_position(self):
         return self.sim.getObjectPose(self.object, -1)
 
+    async def get_self_position(self):
+        return await self.sim.getObjectPose(self.object, -1)
+
+
     async def get_position(self, object):
         return await self.sim.getObjectPose(object, -1)
 

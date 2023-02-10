@@ -11,6 +11,12 @@ def invert(xyz, a):
     return [xyz[0] + a, xyz[1], xyz[2]] + xyz[3:]
 
 
+async def get_drones_positions(drones):
+    return await asyncio.gather(*[
+        drone.get_self_position() for drone in drones
+    ])
+
+
 async def main():
     async with RemoteAPIClient() as client:
         sim = await client.getObject('sim')
@@ -25,7 +31,23 @@ async def main():
             drone.set_target_and_object() for drone in drones
         ])
         print("Initialized all drones...")
-        path = [(1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0)]
+
+
+
+        print(await get_drones_positions(drones))
+
+
+
+
+
+
+
+
+
+
+        path = [(1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0),
+                (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0),
+                (1, 10, 2, 0, 0, 0)]
         for xyz in path:
             new_pos = list(xyz)
             new_pos.append(-1)
