@@ -1,6 +1,6 @@
 import asyncio
 import multiprocessing as mp
-
+from classes.Vector import Vector3
 
 class Drone:
     def __init__(self, name, sim_object):
@@ -9,7 +9,9 @@ class Drone:
         self.max_jerking = 80
         self.sim = sim_object
         self.name = name
+
         # self.object = self.sim.loadModel('hackaton_models/copter.ttm')
+        self.position = None
         self.object = None
         self.target_object = None
         # print(f'Drone #{self.object} initialized!')
@@ -26,15 +28,16 @@ class Drone:
         return self.sim.getObjectPose(self.object, -1)
 
     async def get_self_position(self):
-        return await self.sim.getObjectPose(self.object, -1)
+        self.position = await self.sim.getObjectPose(self.object, -1)
+        self.position = Vector3(self.position)
+        return Vector3(self.position)
 
-
-    async def get_position(self, object):
-        return await self.sim.getObjectPose(object, -1)
+    #async def get_position(self, object):
+    #       return await self.sim.getObjectPose(object, -1)
 
     async def move_target(self, target_pose):
         start_pose_target = await self.sim.getObjectPose(self.target_object, -1)
-        steps = 750
+        steps = 200
         dx, dy, dz = (target_pose[0] - start_pose_target[0]) / steps, (target_pose[1] - start_pose_target[1]) / steps, \
                      (target_pose[2] - start_pose_target[2]) / steps
         for i in range(1, steps+1):

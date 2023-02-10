@@ -1,21 +1,36 @@
 import asyncio
-from multiprocessing import freeze_support
 import sys
 import zmqRemoteApi
+from classes.Follower import Follower
 from zmqRemoteApi.asyncio import RemoteAPIClient
 from classes.Drone import Drone
-import multiprocessing as mp
 
 
 def invert(xyz, a):
     return [xyz[0] + a, xyz[1], xyz[2]] + xyz[3:]
 
 
-async def get_drones_positions(drones):
-    return await asyncio.gather(*[
-        drone.get_self_position() for drone in drones
-    ])
+async def get_drones_positions(drones, leader):
+    return await asyncio.gather(*([
+               drone.get_self_position() for drone in drones
+            ] + [leader.get_self_position()]
+    ))
 
+
+async def update_positions(drones, leader):
+    drone_positions = await get_drones_positions(drones, leader)
+    next_drone_positions = await asyncio.gather(*[
+        drone.calc_next_pos(drone_positions) for drone in drones
+    ])
+    await asyncio.gather(*[
+            drone.move_target(next_pos) for drone, next_pos in zip(drones, next_drone_positions)
+    ])
+    await asyncio.sleep(.1)
+"""
+path = [(1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0),
+                (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0),
+                (1, 10, 2, 0, 0, 0)] (путь дронов - сеятелей бахчи пусть это останется в памяти проекта 2022)
+"""
 
 async def main():
     async with RemoteAPIClient() as client:
@@ -26,35 +41,16 @@ async def main():
 
         print("Success hooked client ...")
         num_of_drones = 6
-        drones = [Drone(f"copter{i}", sim) for i in range(1, num_of_drones + 1)]
-        await asyncio.gather(*[
-            drone.set_target_and_object() for drone in drones
-        ])
+        leader = Drone(f"leader", sim)
+        drones = [Follower(f"copter{i}", sim) for i in range(1, num_of_drones + 1)]
+        await asyncio.gather(*([
+                                   drone.set_target_and_object() for drone in drones
+                               ] + [leader.set_target_and_object()]))
         print("Initialized all drones...")
 
 
-
-        print(await get_drones_positions(drones))
-
-
-
-
-
-
-
-
-
-
-        path = [(1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0),
-                (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0), (1, 10, 2, 0, 0, 0), (1, 1, 1, 0, 0, 0),
-                (1, 10, 2, 0, 0, 0)]
-        for xyz in path:
-            new_pos = list(xyz)
-            new_pos.append(-1)
-            await asyncio.gather(*[
-                drone.move_target(invert(new_pos, i))
-                for i, drone in enumerate(drones, 1)
-            ])
+        while True:
+            await update_positions(drones,leader)
     print("Program ended")
 
 
