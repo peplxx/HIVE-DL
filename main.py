@@ -50,7 +50,7 @@ async def main():
         await sim.setInt32Param(sim.intparam_idle_fps, 0)
 
         print("Success hooked client ...")
-        num_of_drones = 2
+        num_of_drones = 6
         leader = Drone(f"leader", sim)
         drones = [Follower(f"copter{i}", sim) for i in range(1, num_of_drones + 1)]
         await asyncio.gather(*([

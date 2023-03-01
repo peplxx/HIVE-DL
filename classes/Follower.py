@@ -4,12 +4,25 @@ from classes.Drone import Drone
 from classes.Vector import Vector3
 
 
-async def get_drones_positions(drones, leader):
-    dronlist = drones+[leader]
-    return await asyncio.gather(*([
-                                      drone.get_self_position() for drone in dronlist
-                                  ]
-                                  ))
+async def calc_dist_to_drone(pos1, pos2):
+    return ((pos1 - pos2).length, pos2)
+
+
+async def get_drones_positions(drones, leader, index, radius):
+    dronlist = drones + [leader]
+    all_drones = await asyncio.gather(*[
+        drone.get_self_position() for drone in dronlist
+    ]
+                                      )
+    result = [all_drones[-1]]
+    sort_by_distance = [
+        await calc_dist_to_drone(all_drones[index], dronpos) for cur, dronpos in enumerate(all_drones[:-1]) if cur !=
+                                                                                                             index
+    ]
+    sort_by_distance = list(sort_by_distance)
+    print("sfdgfh", len(sort_by_distance[:2]))
+    result += sort_by_distance[:2]
+    return result
 
 
 class Follower(Drone):
@@ -38,9 +51,9 @@ class Follower(Drone):
         return Vector3(new_position)
 
     async def start_moving(self, drones, leader, drone_index):
-        CONSTANT = 30
+        CONSTANT = 50
         while self.isAlive:
-            drone_positions = await get_drones_positions(drones, leader)
+            drone_positions = await get_drones_positions(drones, leader, drone_index, 1.5)
             next_pos = await self.calc_next_pos(drone_positions, CONSTANT, drone_index)
             print(drone_index)
             target_pose = next_pos.vector
