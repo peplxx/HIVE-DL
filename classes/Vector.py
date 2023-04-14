@@ -14,6 +14,8 @@ class Vector3(object):
     def __mul__(self, a: int):
         return Vector3([self.vector[i] - a for i in [0, 1, 2]])
 
+    def __repr__(self):
+        return f"V3({' '.join([str(i)[:5] for i in self.vector])})"
     @property
     def length(self):
         return abs((sum([self.vector[i] ** 2 for i in [0, 1, 2]])) ** .5)

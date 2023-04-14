@@ -4,6 +4,7 @@ import zmqRemoteApi
 from classes.Follower import Follower
 from zmqRemoteApi.asyncio import RemoteAPIClient
 from classes.Drone import Drone
+from classes.Controller import SimController
 
 
 def invert(xyz, a):
@@ -15,24 +16,6 @@ async def get_drones_positions(drones, leader):
                                       drone.get_self_position() for drone in drones
                                   ] + [leader.get_self_position()]
                                   ))
-
-
-async def update_positions(drones, leader):
-    drone_positions = await get_drones_positions(drones, leader)
-    next_drone_positions = await asyncio.gather(*[
-        drone.calc_next_pos(drone_positions, 1) for drone in drones
-    ])
-    print(*[n.vector for n in next_drone_positions])
-    await asyncio.gather(*[
-        drone.move_target(next_pos) for drone, next_pos in zip(drones, next_drone_positions)
-    ])
-    await asyncio.sleep(0)
-
-
-async def start_drones(drones, leader):
-    await asyncio.gather(
-        *[drone.start_moving(drones, leader, index) for index,drone in enumerate(drones)]
-    )
 
 
 """
@@ -51,14 +34,19 @@ async def main():
 
         print("Success hooked client ...")
         num_of_drones = 6
-        leader = Drone(f"leader", sim)
-        drones = [Follower(f"copter{i}", sim) for i in range(1, num_of_drones + 1)]
+        simController = SimController()
+        leader = Drone(f"leader", sim, simController)
+
+        drones = [Follower(f"copter{i}", sim, simController) for i in range(1, num_of_drones + 1)]
+        await simController.init(drones=drones,
+                                 leader=leader,
+                                 sim_object=sim)
         await asyncio.gather(*([
                                    drone.set_target_and_object() for drone in drones
                                ] + [leader.set_target_and_object()]))
         print("Initialized all drones...")
 
-        await start_drones(drones, leader)
+        await simController.mm()
 
     print("Program ended")
 

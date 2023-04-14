@@ -1,9 +1,10 @@
 import asyncio
 import multiprocessing as mp
 from classes.Vector import Vector3
-
+from classes.Controller import SimController
 class Drone:
-    def __init__(self, name, sim_object):
+    def __init__(self, name, sim_object,
+                 controller:SimController):
         self.max_velocity = 0.3
         self.max_acceleration = 0.025
         self.max_jerking = 80
@@ -15,6 +16,7 @@ class Drone:
         self.object = None
         self.target_object = None
         self.isAlive = 1
+        self.controller = controller
         # print(f'Drone #{self.object} initialized!')
 
     def cb(self, pose, vel, accel, handle):
