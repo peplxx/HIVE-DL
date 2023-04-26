@@ -1,4 +1,6 @@
 import asyncio
+import time
+
 from classes.Vector import Vector3
 
 
@@ -11,6 +13,19 @@ class SimController:
         self.k1, self.k2 = 0.5, 0.5  # Еще магические константы
         self.req_distance = 1  # Константа регулировки дистанции между дронами
         self.sim = None
+        self.path = [
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 10, 2, 0, 0, 0, -1], 4),
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 10, 2, 0, 0, 0, -1], 4),
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 10, 2, 0, 0, 0, -1], 4),
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 10, 2, 0, 0, 0, -1], 4),
+            ([1, 1, 1, 0, 0, 0, -1], 4),
+            ([1, 10, 2, 0, 0, 0, -1], 4)
+        ]
     async def init(self, drones, leader, sim_object):
         self.drones = drones
         self.leader = leader
@@ -57,10 +72,10 @@ class SimController:
         vector_from_drone = (current_drone_position - leader_position)
         if (L:=vector_to_drone.length) > self.req_distance:
             result_vector += vector_to_drone * \
-                             (vector_to_drone.length - self.req_distance) * -1.5
+                             (vector_to_drone.length - self.req_distance) * -10
         else:
             result_vector += vector_from_drone * \
-                             (self.req_distance - vector_from_drone.length)*0.1
+                             (self.req_distance - vector_from_drone.length)* 0.1
         return result_vector
 
     async def get_nearest_drones(self, n: int, drone_index: int, leader_affect: bool):
@@ -76,18 +91,22 @@ class SimController:
         multi.sort()
 
         result = [multi[i][1] for i in range(1, n + 1)]
-
-        #if leader_affect:
-        #    result += [self.leader.position]
-        #print(drone_index, "DEBUG3")
         return result
-
-    async def mm(self):
+    async def move_leader(self):
         i = 0
+        start = time.time()
+        await asyncio.gather(self.leader.move_target(Vector3(self.path[i][0])))
+        i += 1
+        while True:
+            if time.time() - start >= self.path[i][1] and len(self.path) - 1 != i:
+                start = time.time()
+                await asyncio.gather(self.leader.move_target(Vector3(self.path[i][0])))
+                i += 1
+    async def start_sim(self):
         while True:
             nearest = await asyncio.gather(
                 *[
-                    self.get_nearest_drones(1,drone_index,True)
+                    self.get_nearest_drones(2,drone_index,True)
                     for drone_index in range(self.total_drones)]
             )
             leader_position = await asyncio.gather(
