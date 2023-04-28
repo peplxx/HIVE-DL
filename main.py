@@ -32,7 +32,7 @@ async def main(loop):
         await sim.setInt32Param(sim.intparam_idle_fps, 0)
 
         print("Success hooked client ...")
-        num_of_drones = 6
+        num_of_drones = 4
         simController = SimController()
         leader = Drone(f"leader", sim, simController)
 

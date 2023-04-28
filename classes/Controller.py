@@ -11,8 +11,9 @@ class SimController:
         self.speed_const = 50  # Магическая константа для скорости
         self.total_drones = None  # Общее количество дронов
         self.k1, self.k2 = 0.5, 0.5  # Еще магические константы
-        self.req_distance = 1  # Константа регулировки дистанции между дронами
+        self.req_distance = 2  # Константа регулировки дистанции между дронами
         self.sim = None
+        self.tick_sepeed_decreasing = Vector3([.5,.5,0])
         self.path = [
             ([1, 1, 1, 0, 0, 0, -1], 4),
             ([1, 10, 2, 0, 0, 0, -1], 4),
@@ -59,6 +60,21 @@ class SimController:
             current_drone_position: Vector3):
         # Функция для расчета скорости дрона для баражирования
         result_vector = Vector3([0, 0, 0])
+
+        vector_to_drone = (leader_position - current_drone_position)
+        vector_from_drone = (current_drone_position - leader_position)
+        dist_to_leader = await self.distance_between(current_drone_position,leader_position)
+        to_leader = False
+        if self.req_distance - 0.5 < dist_to_leader < self.req_distance + 0.5:
+            pass
+        elif (L:=vector_to_drone.length) > self.req_distance + 0.5:
+            result_vector += vector_to_drone * \
+                             (vector_to_drone.length - self.req_distance)
+            to_leader = True
+            return result_vector
+        else:
+            result_vector += vector_from_drone * \
+                             (self.req_distance - vector_from_drone.length) * 0.1
         for index, drone_position in enumerate(nearest_drones):
             vector_to_drone = (drone_position - current_drone_position)
             vector_from_drone = (current_drone_position - drone_position)
@@ -68,14 +84,8 @@ class SimController:
             else:
                 result_vector += vector_from_drone * \
                                  (self.req_distance - vector_from_drone.length) * self.k2
-        vector_to_drone = (leader_position - current_drone_position)
-        vector_from_drone = (current_drone_position - leader_position)
-        if (L:=vector_to_drone.length) > self.req_distance:
-            result_vector += vector_to_drone * \
-                             (vector_to_drone.length - self.req_distance) * -10
-        else:
-            result_vector += vector_from_drone * \
-                             (self.req_distance - vector_from_drone.length)* 0.1
+
+
         return result_vector
 
     async def get_nearest_drones(self, n: int, drone_index: int, leader_affect: bool):

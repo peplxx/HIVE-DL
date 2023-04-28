@@ -11,6 +11,7 @@ class Follower(Drone):
 
     async def calc_next_pos(self, nearest_drones,leader_position):
         speed_vector = await self.controller.speed_calc(nearest_drones,leader_position, self.position)
+        #self.speed -= self.controller.tick_sepeed_decreasing
         self.speed += speed_vector
         self.speed = self.speed.divisizon(self.controller.speed_const)
 
