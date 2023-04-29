@@ -10,7 +10,7 @@ class SimController:
         self.leader = None  # Дрон - лидер
         self.speed_const = 50  # Магическая константа для скорости
         self.total_drones = None  # Общее количество дронов
-        self.k1, self.k2 = 0.5, 0.5  # Еще магические константы
+        self.k1, self.k2 = 0.5, 2  # Еще магические константы
         self.req_distance = 1.5  # Константа регулировки дистанции между дронами
         self.sim = None
         self.tick_sepeed_decreasing = Vector3([.5, .5, 0])
@@ -61,27 +61,27 @@ class SimController:
             current_drone_position: Vector3):
         # Функция для расчета скорости дрона для баражирования
         result_vector = Vector3([0, 0, 0])
-        to_leader = False
         vector_to_drone = (leader_position - current_drone_position)
         vector_from_drone = (current_drone_position - leader_position)
         dist_to_leader = await self.distance_between(current_drone_position, leader_position)
         if self.req_distance - 0.15 < dist_to_leader < self.req_distance + 0.15:
             pass
         elif (L := vector_to_drone.length) > self.req_distance + 0.5:
-            result_vector += vector_to_drone * 0.8
+            result_vector += vector_to_drone * \
+                             (vector_from_drone.length - self.req_distance) * self.req_distance
+
         else:
-            result_vector += vector_from_drone * 0.8
-            to_leader = True
+            result_vector += vector_from_drone * self.req_distance
 
         for index, drone_position in enumerate(nearest_drones):
             vector_to_drone = (drone_position - current_drone_position)
             vector_from_drone = (current_drone_position - drone_position)
             if vector_to_drone.length < 0.3:
-
-                result_vector +=  vector_from_drone * self.k2 * 50
+                result_vector += vector_from_drone * self.k2 * 25
 
             elif vector_to_drone.length > self.req_distance:
-                result_vector += vector_to_drone * self.k1
+                result_vector += vector_to_drone * self.k1 * \
+                                 (vector_from_drone.length - self.req_distance)
             else:
                 result_vector += vector_from_drone * self.k2
 

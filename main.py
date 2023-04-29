@@ -32,7 +32,7 @@ async def main(loop):
         await sim.setInt32Param(sim.intparam_idle_fps, 0)
 
         print("Success hooked client ...")
-        num_of_drones = 4
+        num_of_drones = 6
         simController = SimController()
         leader = Drone(f"leader", sim, simController)
 
@@ -45,9 +45,9 @@ async def main(loop):
                                ] + [leader.set_target_and_object()]))
         print("Initialized all drones...")
         p1 = loop.create_task(simController.start_sim())
-        #p2 = loop.create_task(simController.move_leader())
+        p2 = loop.create_task(simController.move_leader())
         await p1
-        #await p2
+        await p2
         print(len(asyncio.all_tasks()))
 
     print("Program ended")
